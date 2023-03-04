@@ -15,10 +15,9 @@ class AlbumHandler {
   async postAlbumHandler(request, h) {
     try {
       this._validator.validateAlbumPayload(request.payload);
-      const { title = 'untitled' } = request.payload;
-      const { id: credentialId } = request.auth.credentials;
+      const { name, year } = request.payload;
 
-      const albumId = await this._service.addAlbum({ title, owner: credentialId });
+      const albumId = await this._service.addAlbum({ name, year });
 
       const response = h.response({
         status: 'success',
