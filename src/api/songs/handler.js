@@ -15,16 +15,13 @@ class SongHandler {
   async postSongHandler(request, h) {
     try {
       this._validator.validateSongPayload(request.payload);
-      const { title = 'untitled' } = request.payload;
-      const { id: credentialId } = request.auth.credentials;
-
-      const songId = await this._service.addSong({ title, owner: credentialId });
+      const song = await this._service.addSong(request.payload);
 
       const response = h.response({
         status: 'success',
         message: 'Song berhasil ditambahkan',
         data: {
-          songId,
+          song,
         },
       });
       response.code(201);
