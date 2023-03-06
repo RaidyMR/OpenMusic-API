@@ -41,26 +41,20 @@ class AlbumsService {
     const resultAlbum = await this._pool.query(queryAlbum);
 
     const querySong = {
-      text: `SELECT albums.id, albums.name, albums.year, songs.id, songs.title, songs.performer
-      FROM albums
-      LEFT JOIN songs ON songs.album_id = albums.id
-      WHERE albums.id = $1`,
+      text: `SELECT songs.id, songs.title, songs.performer FROM songs
+      where songs.album_id = $1`,
       values: [id],
     };
     const resultSong = await this._pool.query(querySong);
+    console.log(resultSong.rows)
 
     if (!resultAlbum.rows.length) {
       throw new NotFoundError('Album tidak ditemukan');
     }
 
-    if (!resultSong.rows.length) {
-      const album = resultAlbum.rows.map(MapDBToModelAlbum)[0];
-      // add resultSong in album object inside songs array then return it
-      album.songs = [];
-      return album;
-    }
-
-    return resultAlbum.rows.map(MapDBToModelAlbum)[0];
+    const album = resultAlbum.rows.map(MapDBToModelAlbum)[0];
+    album.songs = resultSong.rows;
+    return album;
   }
 
   async editAlbumById(id, { name, year }) {
