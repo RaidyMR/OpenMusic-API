@@ -15,13 +15,13 @@ class SongHandler {
   async postSongHandler(request, h) {
     try {
       this._validator.validateSongPayload(request.payload);
-      const song = await this._service.addSong(request.payload);
+      const songId = await this._service.addSong(request.payload);
 
       const response = h.response({
         status: 'success',
         message: 'Song berhasil ditambahkan',
         data: {
-          song,
+          songId,
         },
       });
       response.code(201);
@@ -47,14 +47,35 @@ class SongHandler {
     }
   }
 
-  async getSongsHandler() {
-    const songs = await this._service.getSongs();
-    return {
-      status: 'success',
-      data: {
-        songs,
-      },
-    };
+  async getSongsHandler(request, h) {
+    try {
+      if (request.query) {
+        const params = request.query;
+        const songs = await this._service.getSongsByParams(params);
+        return {
+          status: 'success',
+          data: {
+            songs,
+          },
+        };
+      }
+
+      const songs = await this._service.getSongs();
+      return {
+        status: 'success',
+        data: {
+          songs,
+        },
+      };
+    } catch (error) {
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
   }
 
   async getSongByIdHandler(request, h) {

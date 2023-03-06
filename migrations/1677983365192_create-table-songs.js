@@ -5,7 +5,7 @@ exports.shorthands = undefined;
 exports.up = (pgm) => {
   pgm.createTable('songs', {
     id: {
-      type: 'VARCHAR(22)',
+      type: 'VARCHAR(32)',
       primaryKey: true,
     },
     title: {
@@ -29,8 +29,8 @@ exports.up = (pgm) => {
       notNull: true,
     },
     album_id: {
-      type: 'VARCHAR(22)',
-      notNull: true,
+      type: 'VARCHAR(32)',
+      notNull: false,
     },
     inserted_at: {
       type: 'TEXT',
@@ -42,7 +42,6 @@ exports.up = (pgm) => {
     },
   });
 
-  // add constraint foreign key to table songs
   pgm.addConstraint('songs', 'fk_songs.album_id_albums.id', 'FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE');
 };
 

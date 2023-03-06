@@ -26,12 +26,14 @@ const MapDBToModelAlbum = ({
   id,
   name,
   year,
+  songs,
   inserted_at,
   updated_at,
 }) => ({
   id,
   name,
   year,
+  songs,
   insertedAt: inserted_at,
   updatedAt: updated_at,
 });
