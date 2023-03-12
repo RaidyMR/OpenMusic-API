@@ -38,4 +38,8 @@ const MapDBToModelAlbum = ({
   updatedAt: updated_at,
 });
 
+MapDBToModelPlaylistSongActivity = ({
+}) => ({
+});
+
 module.exports = { MapDBToModelSong, MapDBToModelAlbum };

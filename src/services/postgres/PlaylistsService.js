@@ -10,6 +10,69 @@ class PlaylistsService {
     this._collaborationService = collaborationService;
   }
 
+  async addPlaylistSongActivity(playlistSongActivity) {
+    const {
+      playlistId, songId, userId, action,
+    } = playlistSongActivity;
+    const id = `playlistSongActivity-${nanoid(16)}`;
+    const time = new Date().toISOString();
+
+    const query = {
+      text: 'INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6) RETURNING id',
+      values: [id, playlistId, songId, userId, action, time],
+    };
+    const result = await this._pool.query(query);
+
+    if (!result.rows[0].id) {
+      throw new InvariantError('Playlist song activity gagal ditambahkan');
+    }
+
+    return result.rows[0].id;
+  }
+
+  async getPlaylistSongActivities(playlistId) {
+    // make a query to get result like this
+    // {
+    //   "playlistId": "playlist-Mk8AnmCp210PwT6B",
+    //   "activities": [
+    //     {
+    //       "username": "dicoding",
+    //       "title": "Life in Technicolor",
+    //       "action": "add",
+    //       "time": "2021-09-13T08:06:20.600Z"
+    //     },
+    //     {
+    //       "username": "dicoding",
+    //       "title": "Centimeteries of London",
+    //       "action": "add",
+    //       "time": "2021-09-13T08:06:39.852Z"
+    //     },
+    //     {
+    //       "username": "dimasmds",
+    //       "title": "Life in Technicolor",
+    //       "action": "delete",
+    //       "time": "2021-09-13T08:07:01.483Z"
+    //     }
+    //   ]
+    // }
+    const query = {
+      text: `SELECT users.username, songs.title, playlist_song_activities.action, playlist_song_activities.time
+      FROM playlist_song_activities
+      LEFT JOIN users ON playlist_song_activities.user_id = users.id
+      LEFT JOIN songs ON playlist_song_activities.song_id = songs.id
+      WHERE playlist_song_activities.playlist_id = $1
+      ORDER BY playlist_song_activities.time ASC`,
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return {
+      playlistId,
+      activities: result.rows,
+    };
+  }
+
   async addPlaylist({ name, owner }) {
     const id = `playlist-${nanoid(16)}`;
 
@@ -53,7 +116,7 @@ class PlaylistsService {
     }
   }
 
-  async addSongToPlaylist(playlistId, songId) {
+  async addSongToPlaylist(playlistId, songId, userId) {
     try {
       const query = {
         text: 'INSERT INTO playlistsongs (playlist_id, song_id) VALUES($1, $2) RETURNING id',
@@ -65,6 +128,10 @@ class PlaylistsService {
       if (!result.rows[0].id) {
         throw new InvariantError('Lagu gagal ditambahkan ke playlist');
       }
+
+      await this.addPlaylistSongActivity({
+        playlistId, songId, userId, action: 'add',
+      });
     } catch (error) {
       throw new NotFoundError('Lagu tidak ditemukan');
     }
@@ -95,7 +162,7 @@ class PlaylistsService {
     return resultPlaylist.rows[0];
   }
 
-  async deleteSongFromPlaylist(playlistId, songId) {
+  async deleteSongFromPlaylist(playlistId, songId, userId) {
     const query = {
       text: 'DELETE FROM playlistsongs WHERE playlist_id = $1 AND song_id = $2 RETURNING id',
       values: [playlistId, songId],
@@ -106,6 +173,10 @@ class PlaylistsService {
     if (!result.rowCount) {
       throw new InvariantError('Lagu gagal dihapus');
     }
+
+    await this.addPlaylistSongActivity({
+      playlistId, songId, userId, action: 'delete',
+    });
   }
 
   async verifyPlaylistOwner(id, owner) {
