@@ -31,7 +31,9 @@ class PlaylistsService {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists 
       LEFT JOIN users ON playlists.owner = users.id 
-      WHERE playlists.owner = $1`,
+      WHERE playlists.owner = $1
+      OR playlists.id IN (SELECT playlist_id FROM collaborations WHERE user_id = $1)
+      `,
       values: [user],
     };
     const result = await this._pool.query(query);
@@ -64,10 +66,7 @@ class PlaylistsService {
         throw new InvariantError('Lagu gagal ditambahkan ke playlist');
       }
     } catch (error) {
-      if (error.message.includes('foreign key constraint')) {
-        throw new NotFoundError('Lagu tidak ditemukan');
-      }
-      throw error;
+      throw new NotFoundError('Lagu tidak ditemukan');
     }
   }
 
