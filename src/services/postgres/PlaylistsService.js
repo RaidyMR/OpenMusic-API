@@ -31,30 +31,6 @@ class PlaylistsService {
   }
 
   async getPlaylistSongActivities(playlistId) {
-    // make a query to get result like this
-    // {
-    //   "playlistId": "playlist-Mk8AnmCp210PwT6B",
-    //   "activities": [
-    //     {
-    //       "username": "dicoding",
-    //       "title": "Life in Technicolor",
-    //       "action": "add",
-    //       "time": "2021-09-13T08:06:20.600Z"
-    //     },
-    //     {
-    //       "username": "dicoding",
-    //       "title": "Centimeteries of London",
-    //       "action": "add",
-    //       "time": "2021-09-13T08:06:39.852Z"
-    //     },
-    //     {
-    //       "username": "dimasmds",
-    //       "title": "Life in Technicolor",
-    //       "action": "delete",
-    //       "time": "2021-09-13T08:07:01.483Z"
-    //     }
-    //   ]
-    // }
     const query = {
       text: `SELECT users.username, songs.title, playlist_song_activities.action, playlist_song_activities.time
       FROM playlist_song_activities
