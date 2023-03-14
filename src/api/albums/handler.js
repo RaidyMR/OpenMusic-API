@@ -165,6 +165,8 @@ class AlbumHandler {
           message: 'Berhasil Menyukai Album',
         });
         response.code(201);
+        response.header('X-Data-Source', 'cache');
+
         return response;
       }
 
@@ -174,6 +176,8 @@ class AlbumHandler {
         message: 'Berhasil Membatalkan Suka Album',
       });
       response.code(201);
+      response.header('X-Data-Source', 'cache');
+
       return response;
     } catch (error) {
       if (error instanceof ClientError) {
@@ -192,6 +196,7 @@ class AlbumHandler {
       });
       response.code(500);
       console.error(error);
+
       return response;
     }
   }
@@ -201,12 +206,16 @@ class AlbumHandler {
       const { id: albumId } = request.params;
 
       const likes = await this._service.getAlbumLikesById(albumId);
-      return {
+      const response = h.response({
         status: 'success',
         data: {
-          likes: likes.length,
+          likes,
         },
-      };
+      });
+      response.code(200);
+      response.header('X-Data-Source', 'cache');
+
+      return response;
     } catch (error) {
       if (error instanceof ClientError) {
         const response = h.response({

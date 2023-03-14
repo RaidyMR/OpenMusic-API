@@ -5,8 +5,9 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const { MapDBToModelAlbum } = require('../../utils');
 
 class AlbumsService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   async addAlbum({ name, year }) {
@@ -119,7 +120,14 @@ class AlbumsService {
       text: 'INSERT INTO user_album_likes VALUES($1, $2, $3) RETURNING id',
       values: [id, userId, albumId],
     };
-    await this._pool.query(query);
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows[0].id) {
+      throw new InvariantError('Gagal menambahkan like');
+    }
+
+    await this._cacheService.delete(`notes:${albumId}`);
   }
 
   async deleteAlbumLikesById(albumId, userId) {
@@ -128,10 +136,11 @@ class AlbumsService {
       values: [albumId, userId],
     };
     const result = await this._pool.query(query);
-
     if (!result.rows.length) {
       throw new InvariantError('Gagal menghapus like');
     }
+
+    await this._cacheService.delete(`notes:${albumId}`);
   }
 
   async getAlbumLikesById(albumId) {
@@ -141,7 +150,8 @@ class AlbumsService {
     };
 
     const result = await this._pool.query(query);
-    return result.rows;
+    await this._cacheService.set(`likes:${albumId}`, result.rows.length);
+    return result.rows.length;
   }
 }
 
