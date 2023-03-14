@@ -27,6 +27,7 @@ const MapDBToModelAlbum = ({
   name,
   year,
   songs,
+  cover,
   inserted_at,
   updated_at,
 }) => ({
@@ -34,12 +35,9 @@ const MapDBToModelAlbum = ({
   name,
   year,
   songs,
+  coverUrl: cover,
   insertedAt: inserted_at,
   updatedAt: updated_at,
-});
-
-MapDBToModelPlaylistSongActivity = ({
-}) => ({
 });
 
 module.exports = { MapDBToModelSong, MapDBToModelAlbum };
