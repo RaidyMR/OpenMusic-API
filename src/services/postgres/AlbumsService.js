@@ -127,7 +127,7 @@ class AlbumsService {
       throw new InvariantError('Gagal menambahkan like');
     }
 
-    await this._cacheService.delete(`notes:${albumId}`);
+    await this._cacheService.delete(`likes:${albumId}`);
   }
 
   async deleteAlbumLikesById(albumId, userId) {
@@ -140,18 +140,24 @@ class AlbumsService {
       throw new InvariantError('Gagal menghapus like');
     }
 
-    await this._cacheService.delete(`notes:${albumId}`);
+    await this._cacheService.delete(`likes:${albumId}`);
   }
 
   async getAlbumLikesById(albumId) {
-    const query = {
-      text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
-      values: [albumId],
-    };
+    try {
+      const result = await this._cacheService.get(`likes:${albumId}`);
+      return { cache: true, likes: JSON.parse(result) };
+    } catch (error) {
+      const query = {
+        text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
+        values: [albumId],
+      };
 
-    const result = await this._pool.query(query);
-    await this._cacheService.set(`likes:${albumId}`, result.rows.length);
-    return result.rows.length;
+      const result = await this._pool.query(query);
+      await this._cacheService.set(`likes:${albumId}`, result.rows.length);
+
+      return { cache: false, likes: result.rows.length };
+    }
   }
 }
 

@@ -165,7 +165,6 @@ class AlbumHandler {
           message: 'Berhasil Menyukai Album',
         });
         response.code(201);
-        response.header('X-Data-Source', 'cache');
 
         return response;
       }
@@ -176,7 +175,6 @@ class AlbumHandler {
         message: 'Berhasil Membatalkan Suka Album',
       });
       response.code(201);
-      response.header('X-Data-Source', 'cache');
 
       return response;
     } catch (error) {
@@ -205,7 +203,7 @@ class AlbumHandler {
     try {
       const { id: albumId } = request.params;
 
-      const likes = await this._service.getAlbumLikesById(albumId);
+      const { cache, likes } = await this._service.getAlbumLikesById(albumId);
       const response = h.response({
         status: 'success',
         data: {
@@ -213,7 +211,10 @@ class AlbumHandler {
         },
       });
       response.code(200);
-      response.header('X-Data-Source', 'cache');
+
+      if (cache) {
+        response.header('X-Data-Source', 'cache');
+      }
 
       return response;
     } catch (error) {
